@@ -2,6 +2,7 @@ import asyncio
 import aiohttp
 import os
 import sys
+import json
 
 from pipecat.audio.vad.silero import SileroVADAnalyzer, VADParams
 from pipecat.frames.frames import LLMMessagesFrame
@@ -27,7 +28,7 @@ logger.remove(0)
 logger.add(sys.stderr, level="DEBUG")
 
 
-async def main():
+async def start_interview_bot():
     async with aiohttp.ClientSession() as session:
         (room_url, token) = await configure(session)
 
@@ -65,6 +66,8 @@ async def main():
         llm = OLLamaLLMService(model="llama3.2")
 
         messages = []
+
+        participant_name = ""
 
         tma_in = LLMUserResponseAggregator(messages)
         tma_out = LLMAssistantResponseAggregator(messages)
@@ -106,6 +109,10 @@ async def main():
         runner = PipelineRunner()
 
         await runner.run(task)
+        return json.dumps({
+            "name": participant_name,
+            "score": 2.0,
+        })
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(start_interview_bot())
